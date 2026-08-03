@@ -242,7 +242,8 @@ input.addEventListener("input", () => {
 
 function showPopup(g){
   popup.querySelector("#pName").textContent = g.name;
-  popup.querySelector("#pSeat").textContent = `Table ${g.table} · Seat ${g.seat}`;
+  <!-- popup.querySelector("#pSeat").textContent = `Table ${g.table} · Seat ${g.seat}`; -->
+  popup.querySelector("#pSeat").textContent = `Table ${g.table}`;
   popup.classList.add("show");
   petals();
 }
