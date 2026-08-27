@@ -1,470 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#234d3c">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff8f5">
 <title>Jennifer & Charlie — Wedding Seat Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --green:#285a46;
-  --green-dark:#183d2f;
-  --green-soft:#dfeee6;
-  --gold:#b99a5b;
-  --cream:#fbfaf6;
-  --ink:#24312b;
-  --muted:#6d756f;
-  --line:rgba(40,90,70,.14);
-}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
-body{
-  min-height:100vh;
-  background:
-    radial-gradient(circle at 50% -10%,rgba(255,255,255,.95),rgba(255,255,255,0) 45%),
-    linear-gradient(135deg,#f8f5ee,#eef3ee);
-}
-button,input{font:inherit}
-.app{width:min(1180px,100%);margin:auto;padding:28px 18px 40px}
-.header{text-align:center;margin:4px 0 22px}
-.kicker{
-  letter-spacing:.22em;text-transform:uppercase;font-size:11px;color:var(--gold);font-weight:700
-}
-h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(30px,5vw,50px);margin:8px 0 5px;color:var(--green-dark)}
-.date{color:var(--muted);font-size:14px}
-.search-card{
-  width:min(620px,100%);margin:0 auto 22px;background:rgba(255,255,255,.92);
-  border:1px solid var(--line);border-radius:22px;padding:14px;
-  box-shadow:0 18px 50px rgba(24,61,47,.10);backdrop-filter:blur(12px)
-}
-.search-wrap{position:relative}
-.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;color:#7b847e}
-#search{
-  width:100%;border:1px solid #dfe5e0;border-radius:15px;padding:15px 46px 15px 45px;
-  font-size:17px;background:#fff;outline:none;transition:.2s
-}
-#search:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(40,90,70,.10)}
-.clear{
-  position:absolute;right:10px;top:50%;transform:translateY(-50%);
-  width:32px;height:32px;border:0;border-radius:50%;background:#eef2ef;color:#5f6962;cursor:pointer
-}
-.results{display:flex;flex-direction:column;gap:7px;margin-top:10px}
-.result{
-  display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:13px;
-  background:#f6f8f6;cursor:pointer;border:1px solid transparent;transition:.2s
-}
-.result:hover{background:var(--green-soft);border-color:#cfe2d7}
-.result-name{font-weight:650}.result-table{font-size:13px;color:var(--green);font-weight:700}
-.hint{text-align:center;color:#818983;font-size:12px;margin:10px 2px 0}
-
-.map-card{
-  background:#fff;border:1px solid var(--line);border-radius:28px;padding:12px;
-  box-shadow:0 24px 70px rgba(24,61,47,.13);overflow:hidden
-}
-.map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 7px 12px}
-.map-title{font-family:Georgia,serif;font-size:19px;color:var(--green-dark)}
-.map-actions{display:flex;gap:6px}
-.map-actions button{
-  border:1px solid #dce4df;background:#fff;color:var(--green-dark);border-radius:10px;padding:8px 11px;cursor:pointer
-}
-.map-actions button:hover{background:#f1f6f2}
-.map-viewport{
-  position:relative;overflow:hidden;border-radius:20px;background:#f4f1e9;touch-action:none;
-  min-height:320px;cursor:grab
-}
-.map-viewport.dragging{cursor:grabbing}
-.map-stage{
-  position:absolute;left:0;top:0;width:1402px;height:1122px;transform-origin:0 0;
-  user-select:none
-}
-.map-image{position:absolute;inset:0;width:1402px;height:1122px;display:block}
-.overlay{position:absolute;inset:0;width:1402px;height:1122px;overflow:visible}
-.route{
-  fill:none;stroke:#2c7a58;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:2 22;filter:drop-shadow(0 2px 2px rgba(27,75,52,.18));
-  opacity:0;transition:opacity .35s
-}
-.route.visible{opacity:1;animation:dash 1.1s linear infinite}
-.route-shadow{
-  fill:none;stroke:rgba(255,255,255,.9);stroke-width:16;stroke-linecap:round;stroke-linejoin:round;opacity:0
-}
-.route-shadow.visible{opacity:.85}
-@keyframes dash{to{stroke-dashoffset:-24}}
-.route-dot{fill:#2c7a58;opacity:0}
-.route-dot.visible{opacity:1}
-.table-hit{fill:rgba(255,255,255,0);stroke:transparent;cursor:pointer}
-.halo{
-  fill:rgba(64,165,113,.13);stroke:#2c8a5f;stroke-width:7;
-  opacity:0;transform-box:fill-box;transform-origin:center;pointer-events:none
-}
-.halo.active{opacity:1;animation:halo 1.7s ease-in-out infinite}
-@keyframes halo{
-  0%,100%{transform:scale(.92);filter:drop-shadow(0 0 3px rgba(44,138,95,.35))}
-  50%{transform:scale(1.10);filter:drop-shadow(0 0 18px rgba(44,138,95,.7))}
-}
-.table-label{
-  opacity:0;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-.table-label.active{opacity:1}
-.table-label rect{fill:#285a46;rx:13;filter:drop-shadow(0 4px 7px rgba(0,0,0,.2))}
-.table-label text{fill:white;font-size:18px;font-weight:800;text-anchor:middle}
-.dance{font-size:27px;opacity:.72;transform-box:fill-box;transform-origin:center;animation:dance 1.25s ease-in-out infinite alternate}
-.d2{animation-delay:-.35s}.d3{animation-delay:-.7s}.d4{animation-delay:-.15s}
-@keyframes dance{from{transform:translateY(3px) rotate(-5deg)}to{transform:translateY(-5px) rotate(5deg)}}
-.entrance-label{
-  fill:#285a46;font-size:14px;font-weight:800;letter-spacing:2px;text-anchor:middle;opacity:.85
-}
-.start-dot{fill:#285a46;stroke:#fff;stroke-width:5;opacity:0}
-.start-dot.visible{opacity:1;animation:pulse 1.5s infinite}
-@keyframes pulse{50%{r:14}}
-.info{
-  display:flex;justify-content:center;align-items:center;gap:9px;color:#68736c;font-size:12px;padding:12px 4px 2px
-}
-.legend-dot{width:8px;height:8px;border-radius:50%;background:#2c8a5f;display:inline-block}
-.status{
-  margin:0 auto 18px;width:min(620px,100%);display:none;align-items:center;justify-content:center;gap:10px;
-  background:#eff7f1;border:1px solid #d4e8da;color:var(--green-dark);border-radius:15px;padding:12px 16px;
-}
-.status.show{display:flex}
-.status strong{font-weight:750}
-.status button{border:0;background:none;color:var(--green);font-weight:700;cursor:pointer}
-.toast{
-  position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
-  background:#183d2f;color:#fff;padding:11px 16px;border-radius:13px;box-shadow:0 12px 30px rgba(0,0,0,.2);
-  transition:.25s;z-index:20;font-size:13px
-}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:700px){
-  .app{padding:18px 10px 28px}
-  .map-card{padding:8px;border-radius:20px}
-  .map-toolbar{padding:3px 5px 9px}
-  .map-title{font-size:16px}
-  .map-actions button{padding:7px 9px}
-  .map-viewport{height:68vh;min-height:420px;border-radius:15px}
-  .info{font-size:11px}
-}
+:root{--rose:#d77f82;--rose2:#ba6066;--champ:#d9b78a;--ink:#292624;--muted:#8c827e;--line:#ecd9d2;--shadow:0 14px 34px rgba(91,59,49,.12)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:"Montserrat",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#fff9f6}
+body{background:radial-gradient(circle at 50% -8%,#fff 0,rgba(255,255,255,.92) 22%,rgba(255,255,255,0) 43%),linear-gradient(180deg,#fff8f5 0%,#fffdfb 52%,#fff7f3 100%)}
+button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9px 28px}
+.hero{text-align:center;padding:15px 8px 23px}.monogram{font-family:"Cormorant Garamond",serif;color:var(--champ);font-size:43px;letter-spacing:.13em}.orn{color:#dfc19a;margin:7px 0 12px}.couple{font-family:"Cormorant Garamond",serif;font-size:clamp(36px,10vw,67px);font-weight:500;line-height:.96;letter-spacing:.065em;margin:0;text-align:center}.subtitle{margin-top:13px;color:#d18484;font-size:clamp(13px,4vw,21px);letter-spacing:.18em;text-transform:uppercase}.divider{display:flex;justify-content:center;align-items:center;gap:13px;color:#dfa3a5;margin:14px 0 10px}.divider:before,.divider:after{content:"";width:54px;height:1px;background:#eedbd6}.date{text-transform:uppercase;letter-spacing:.18em;font-size:10px;color:#827a77}
+.card{background:rgba(255,253,251,.97);border:1px solid rgba(217,174,159,.24);box-shadow:var(--shadow);border-radius:22px}
+.search-card{padding:13px;max-width:760px;margin:0 auto 16px}.search-wrap{position:relative}.search-icon{position:absolute;left:17px;top:50%;transform:translateY(-50%);font-size:25px;color:#928b88}
+#search{width:100%;height:55px;border:1px solid #ead8d2;border-radius:16px;background:#fff;padding:0 50px 0 50px;outline:none;font-size:15px;font-weight:500;color:#302c2a}
+#search:focus{border-color:#d99998;box-shadow:0 0 0 4px rgba(207,119,123,.09)}.clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:35px;height:35px;border:0;border-radius:50%;background:#f8ddda;color:#c86e72;font-size:21px}
+.results{display:flex;flex-direction:column;gap:8px;margin-top:10px}.result{min-height:56px;padding:10px 14px;border-radius:14px;background:#fff8f6;border:1px solid #f0dfda;display:flex;align-items:center;cursor:pointer}.result-name{flex:1;font-weight:700;font-size:14px}.result-table{color:var(--rose);font-size:12px;font-weight:700}.hint{text-align:center;color:#c76e72;font-size:11px;line-height:1.45;margin:12px 5px 1px}
+.guest-card{max-width:760px;margin:0 auto 16px;padding:13px 14px;display:none;align-items:center;gap:11px}.guest-card.show{display:flex}.guest-icon{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;background:#fae9e6;color:#cc7175}.guest-icon svg{width:24px}.guest-copy{flex:1;min-width:0}.guest-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.guest-table{font-size:12px;color:var(--rose);font-weight:600;margin-top:4px}.show-route{border:0;border-radius:14px;background:linear-gradient(135deg,#d77d80,#ba6066);color:#fff;font-weight:700;padding:12px 13px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}.show-route svg{width:18px}
+.map-card{max-width:850px;margin:0 auto;padding:11px}.map-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:2px 2px 9px}.map-title{font-size:13px;font-weight:700;color:#cb7478;letter-spacing:.06em;text-transform:uppercase}.map-sub{font-size:10px;color:#6f6967;margin-top:4px}.fit{width:41px;height:41px;border-radius:12px;border:1px solid #ecd8d3;background:#fffaf8;color:#ca7075;display:grid;place-items:center}.fit svg{width:22px}
+.viewport{position:relative;overflow:hidden;border-radius:15px;background:#f0e5d9;touch-action:none;min-height:360px;height:58vh;cursor:grab;border:1px solid #ead8ca}.stage{position:absolute;left:0;top:0;width:1536px;height:1536px;transform-origin:0 0}.map-image{position:absolute;inset:0;width:1536px;height:1536px}.overlay{position:absolute;inset:0;width:1536px;height:1536px;overflow:visible}
+.route-shadow{fill:none;stroke:rgba(255,255,255,.96);stroke-width:19;stroke-linecap:round;stroke-linejoin:round;opacity:0}.route-shadow.visible{opacity:.94}.route{fill:none;stroke:#ca6970;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:3 19;opacity:0}.route.visible{opacity:1;animation:dash 1.05s linear infinite}@keyframes dash{to{stroke-dashoffset:-22}}
+.halo{fill:rgba(209,105,111,.13);stroke:#d06f74;stroke-width:8;opacity:0;transform-box:fill-box;transform-origin:center;pointer-events:none}.halo.active{opacity:1;animation:halo 1.7s ease-in-out infinite}@keyframes halo{50%{transform:scale(1.10)}}.table-hit{fill:transparent;stroke:transparent;cursor:pointer}.table-label{opacity:0;pointer-events:none;font-family:"Montserrat",sans-serif}.table-label.active{opacity:1}.table-label rect{fill:#ca6f74;rx:13}.table-label text{fill:#fff;font-size:18px;font-weight:700;text-anchor:middle}.start-dot{fill:#ce6f75;stroke:#fff;stroke-width:5;opacity:0}.start-dot.visible{opacity:1}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}.control{min-height:46px;border:1px solid #edd9d4;border-radius:14px;background:#fffaf8;color:#3f3937;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px}.mi{color:#ce7176;font-size:17px}.footer{text-align:center;color:#a49a96;font-size:10px;margin:21px auto 3px}.heart{color:#e3a4a4;font-size:14px;margin:0 7px}.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);opacity:0;background:#b86167;color:#fff;padding:11px 15px;border-radius:13px;z-index:30;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:700px){.viewport{height:min(70vh,720px)}}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="header">
-    <div class="kicker">Welcome to</div>
-    <h1>Jennifer &amp; Charlie</h1>
-    <div class="date">26 September 2026 · Find your table</div>
-  </header>
+<header class="hero">
+<div class="monogram">J&nbsp; | &nbsp;C</div><div class="orn">❧</div>
+<h1 class="couple">JENNIFER &amp; CHARLIE</h1>
+<div class="subtitle">Wedding Seat Finder</div>
+<div class="divider">♥</div><div class="date">26 September 2026</div>
+</header>
 
-  <div id="status" class="status">
-    <span>✨</span>
-    <span id="statusText"></span>
-    <button id="statusClear">Clear</button>
-  </div>
+<section class="search-card card">
+<div class="search-wrap"><span class="search-icon">⌕</span><input id="search" autocomplete="off" placeholder="Search for a guest…"><button class="clear" id="clearSearch">×</button></div>
+<div id="results" class="results"></div><div class="hint">Type a name to find their table and show the route</div>
+</section>
 
-  <section class="search-card">
-    <div class="search-wrap">
-      <span class="search-icon">⌕</span>
-      <input id="search" autocomplete="off" placeholder="Search your name…" aria-label="Search your name">
-      <button class="clear" id="clearSearch" aria-label="Clear search">×</button>
-    </div>
-    <div id="results" class="results"></div>
-    <div class="hint">Type your first or last name · tap a result · or tap a table on the map</div>
-  </section>
+<section id="guestCard" class="guest-card card">
+<div class="guest-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"></circle><circle cx="16.5" cy="9" r="2.3"></circle><path d="M3.5 18c.5-3.1 2.3-4.7 5.5-4.7s5 1.6 5.5 4.7"></path></svg></div>
+<div class="guest-copy"><div id="guestName" class="guest-name"></div><div id="guestTable" class="guest-table"></div></div>
+<button id="showRouteBtn" class="show-route"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3 10.5 13.5"></path><path d="m21 3-6.5 18-4-7.5L3 9.5 21 3Z"></path></svg>Show Route</button>
+</section>
 
-  <section class="map-card">
-    <div class="map-toolbar">
-      <div class="map-title">Reception Floor Plan</div>
-      <div class="map-actions">
-        <button id="zoomOut" aria-label="Zoom out">−</button>
-        <button id="reset" aria-label="Reset map">Reset</button>
-        <button id="zoomIn" aria-label="Zoom in">+</button>
-      </div>
-    </div>
-
-    <div class="map-viewport" id="viewport">
-      <div class="map-stage" id="stage">
-        <img class="map-image" src="wedding-map.jpeg" alt="Wedding reception floor plan">
-
-        <svg class="overlay" viewBox="0 0 1402 1122" aria-label="Interactive wedding map">
-          <path id="routeShadow" class="route-shadow"></path>
-          <path id="route" class="route"></path>
-          <circle id="startDot" class="start-dot" cx="701" cy="1048" r="9"></circle>
-
-          <!-- Subtle animated dancers -->
-          <text class="dance d1" x="665" y="390">💃</text>
-          <text class="dance d2" x="700" y="430">🕺</text>
-          <text class="dance d3" x="735" y="390">💃</text>
-          <text class="dance d4" x="700" y="465">🕺</text>
-
-          <text class="entrance-label" x="701" y="1090">ENTRANCE</text>
-
-          <g id="tables"></g>
-        </svg>
-      </div>
-    </div>
-    <div class="info"><span class="legend-dot"></span> Green glow = your table · Animated line = walking route</div>
-  </section>
-</div>
-
-<div class="toast" id="toast"></div>
+<section class="map-card card">
+<div class="map-head"><div><div class="map-title">Reception Layout</div><div class="map-sub">Tap and drag to move · Pinch to zoom</div></div><button id="reset" class="fit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="9"></circle><path d="M12 1v4M12 19v4M1 12h4M19 12h4"></path></svg></button></div>
+<div class="viewport" id="viewport"><div class="stage" id="stage"><img class="map-image" src="wedding-map.png" alt="Wedding reception floor plan"><svg class="overlay" viewBox="0 0 1536 1536"><path id="routeShadow" class="route-shadow"></path><path id="route" class="route"></path><circle id="startDot" class="start-dot" cx="768" cy="1432" r="9"></circle><g id="tables"></g></svg></div></div>
+<div class="controls"><button id="zoomOut" class="control"><span class="mi">⊖</span>Zoom Out</button><button id="fitBottom" class="control"><span class="mi">⛶</span>Fit to View</button><button id="zoomIn" class="control"><span class="mi">⊕</span>Zoom In</button></div>
+</section>
+<footer class="footer"><span class="heart">♥</span>Made with love for our favourite people<span class="heart">♥</span></footer>
+</div><div id="toast" class="toast"></div>
 
 <script>
-const couple = { first:"Jennifer", second:"Charlie", date:"26 September 2026" };
-
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2pieQfwGYu8sURMhnXzEk3372PBBQmSmvuiXqPs7sViOPXaptI-0MJ6AkSjD_3tHyna--57_axu6n/pub?gid=0&single=true&output=csv";
-
-const tablePositions = {
-  1:[216,360], 2:[347,360], 3:[478,360],
-  4:[216,522], 5:[347,522], 6:[478,522],
-  7:[216,675], 8:[347,675], 9:[478,675],
-  10:[216,824], 11:[347,824], 12:[478,824],
-  13:[937,360], 14:[1067,360], 15:[1201,360],
-  16:[937,522], 17:[1067,522], 18:[1201,522],
-  19:[937,675], 20:[1067,675], 21:[1201,675],
-  22:[937,824], 23:[1067,824]
-};
-
-const tablesG = document.getElementById("tables");
-const route = document.getElementById("route");
-const routeShadow = document.getElementById("routeShadow");
-const startDot = document.getElementById("startDot");
-const viewport = document.getElementById("viewport");
-const stage = document.getElementById("stage");
-const search = document.getElementById("search");
-const results = document.getElementById("results");
-const status = document.getElementById("status");
-const statusText = document.getElementById("statusText");
-const toast = document.getElementById("toast");
-
-let guests = [];
-let selectedTable = null;
-let scale = 1;
-let tx = 0, ty = 0;
-let drag = null;
-
-function normalize(s){
-  return String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-}
-
-function parseCSV(text){
-  const rows=[]; let row=[], cell="", quoted=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i], n=text[i+1];
-    if(c === '"' && quoted && n === '"'){ cell+='"'; i++; continue; }
-    if(c === '"'){ quoted=!quoted; continue; }
-    if(c === ',' && !quoted){ row.push(cell.trim()); cell=""; continue; }
-    if((c === '\n' || c === '\r') && !quoted){
-      if(c === '\r' && n === '\n') i++;
-      row.push(cell.trim()); cell="";
-      if(row.some(v=>v!=="")) rows.push(row);
-      row=[]; continue;
-    }
-    cell+=c;
-  }
-  row.push(cell.trim());
-  if(row.some(v=>v!=="")) rows.push(row);
-  return rows;
-}
-
-function buildTables(){
-  for(const [table, [x,y]] of Object.entries(tablePositions)){
-    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
-    g.dataset.table=table;
-
-    const hit=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    hit.setAttribute("class","table-hit");
-    hit.setAttribute("cx",x); hit.setAttribute("cy",y); hit.setAttribute("r",64);
-    hit.addEventListener("click",()=>selectTable(Number(table), null, true));
-    g.appendChild(hit);
-
-    const halo=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    halo.setAttribute("class","halo");
-    halo.setAttribute("cx",x); halo.setAttribute("cy",y); halo.setAttribute("r",69);
-    halo.dataset.halo=table;
-    g.appendChild(halo);
-
-    const label=document.createElementNS("http://www.w3.org/2000/svg","g");
-    label.setAttribute("class","table-label");
-    label.dataset.label=table;
-    const rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
-    rect.setAttribute("x",x-61); rect.setAttribute("y",y-101); rect.setAttribute("width",122); rect.setAttribute("height",32);
-    const text=document.createElementNS("http://www.w3.org/2000/svg","text");
-    text.setAttribute("x",x); text.setAttribute("y",y-79); text.textContent="YOUR TABLE";
-    label.append(rect,text); g.appendChild(label);
-
-    tablesG.appendChild(g);
-  }
-}
-buildTables();
-
-function routePoints(table){
-  const [x,y] = tablePositions[table];
-  const entrance=[701,1048];
-
-  // Keep the route in the open aisle and travel around the dance floor rather
-  // than drawing a straight line through tables/dance floor.
-  if(x < 600){
-    if(y >= 760) return [entrance,[570,980],[570,y],[x,y]];
-    if(y >= 590) return [entrance,[570,980],[570,570],[x,570],[x,y]];
-    return [entrance,[570,980],[570,285],[x,285],[x,y]];
-  }
-
-  if(x > 800){
-    if(y >= 760) return [entrance,[835,980],[835,y],[x,y]];
-    if(y >= 590) return [entrance,[835,980],[835,570],[x,570],[x,y]];
-    return [entrance,[835,980],[835,285],[x,285],[x,y]];
-  }
-
-  return [entrance,[701,930],[701,760],[x,y]];
-}
-
-function makePath(points){
-  return points.map((p,i)=>(i?"L ":"M ")+p[0]+" "+p[1]).join(" ");
-}
-
-function clearSelection(){
-  selectedTable=null;
-  document.querySelectorAll(".halo").forEach(el=>el.classList.remove("active"));
-  document.querySelectorAll(".table-label").forEach(el=>el.classList.remove("active"));
-  route.classList.remove("visible"); routeShadow.classList.remove("visible"); startDot.classList.remove("visible");
-  status.classList.remove("show");
-  results.innerHTML="";
-}
-
-function selectTable(table, guest=null, fromMap=false){
-  selectedTable=table;
-  document.querySelectorAll(".halo").forEach(el=>el.classList.toggle("active", el.dataset.halo==table));
-  document.querySelectorAll(".table-label").forEach(el=>el.classList.toggle("active", el.dataset.label==table));
-
-  const d=makePath(routePoints(table));
-  route.setAttribute("d",d); routeShadow.setAttribute("d",d);
-  route.classList.add("visible"); routeShadow.classList.add("visible"); startDot.classList.add("visible");
-
-  if(guest){
-    statusText.innerHTML = `<strong>${escapeHtml(guest.name)}</strong> · Table ${table}`;
-    status.classList.add("show");
-    search.value = guest.name;
-  } else if(fromMap){
-    statusText.innerHTML = `<strong>Table ${table}</strong> selected`;
-    status.classList.add("show");
-    search.value="";
-  }
-
-  focusTable(table);
-}
-
-function focusTable(table){
-  const [x,y]=tablePositions[table];
-  const vw=viewport.clientWidth, vh=viewport.clientHeight;
-  const targetScale=Math.max(1, Math.min(1.55, scale < 1 ? 1 : scale));
-  scale=targetScale;
-  tx=(vw/2)-(x*scale);
-  ty=(vh/2)-(y*scale);
-  clampPan();
-  render();
-}
-
-function clampPan(){
-  const vw=viewport.clientWidth, vh=viewport.clientHeight;
-  const sw=1402*scale, sh=1122*scale;
-  const minX=Math.min(0,vw-sw), minY=Math.min(0,vh-sh);
-  tx=Math.max(minX,Math.min(0,tx));
-  ty=Math.max(minY,Math.min(0,ty));
-  if(sw<vw) tx=(vw-sw)/2;
-  if(sh<vh) ty=(vh-sh)/2;
-}
-function render(){ stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; }
-
-function resetMap(){
-  scale=Math.min(viewport.clientWidth/1402, viewport.clientHeight/1122);
-  scale=Math.max(scale, .55);
-  tx=(viewport.clientWidth-1402*scale)/2;
-  ty=(viewport.clientHeight-1122*scale)/2;
-  render();
-}
-function zoom(delta){
-  const old=scale;
-  scale=Math.max(.55,Math.min(2.0,scale+delta));
-  const rect=viewport.getBoundingClientRect();
-  const cx=rect.width/2, cy=rect.height/2;
-  tx=cx-(cx-tx)*(scale/old);
-  ty=cy-(cy-ty)*(scale/old);
-  clampPan(); render();
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
-}
-
-function renderResults(matches){
-  results.innerHTML="";
-  matches.slice(0,8).forEach(g=>{
-    const div=document.createElement("div");
-    div.className="result";
-    div.innerHTML=`<span class="result-name">${escapeHtml(g.name)}</span><span class="result-table">TABLE ${escapeHtml(g.table)}</span>`;
-    div.addEventListener("click",()=>selectTable(Number(g.table),g));
-    results.appendChild(div);
-  });
-  if(matches.length>8){
-    const more=document.createElement("div");
-    more.className="hint";
-    more.textContent=`${matches.length-8} more matches — keep typing to narrow it down.`;
-    results.appendChild(more);
-  }
-}
-
-search.addEventListener("input",()=>{
-  const q=normalize(search.value);
-  results.innerHTML="";
-  if(!q){ if(!selectedTable) clearSelection(); return; }
-  const parts=search.value.trim().split(/\s+/).map(normalize).filter(Boolean);
-  const matches=guests.filter(g=>parts.every(p=>g.normalized.includes(p)));
-  if(matches.length===1) selectTable(Number(matches[0].table),matches[0]);
-  else if(matches.length) renderResults(matches);
-  else results.innerHTML=`<div class="hint">No guest found. Try a first name, surname or nickname.</div>`;
-});
-
-document.getElementById("clearSearch").onclick=()=>{search.value="";clearSelection();search.focus()};
-document.getElementById("statusClear").onclick=()=>{clearSelection();search.value=""};
-document.getElementById("reset").onclick=resetMap;
-document.getElementById("zoomIn").onclick=()=>zoom(.12);
-document.getElementById("zoomOut").onclick=()=>zoom(-.12);
-
-viewport.addEventListener("pointerdown",e=>{
-  drag={x:e.clientX,y:e.clientY,tx,ty};
-  viewport.classList.add("dragging");
-  viewport.setPointerCapture(e.pointerId);
-});
-viewport.addEventListener("pointermove",e=>{
-  if(!drag)return;
-  tx=drag.tx+(e.clientX-drag.x); ty=drag.ty+(e.clientY-drag.y);
-  clampPan(); render();
-});
-viewport.addEventListener("pointerup",()=>{drag=null;viewport.classList.remove("dragging")});
-viewport.addEventListener("pointercancel",()=>{drag=null;viewport.classList.remove("dragging")});
-viewport.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?.08:-.08)},{passive:false});
-
-window.addEventListener("resize",()=>{ if(!selectedTable) resetMap(); else focusTable(selectedTable); });
-
-fetch(CSV_URL)
-  .then(r=>{if(!r.ok)throw new Error("CSV unavailable");return r.text()})
-  .then(text=>{
-    const rows=parseCSV(text).slice(1);
-    guests=rows.map(r=>{
-      const first=r[0]||"", last=r[1]||"", table=r[2]||"", seat=r[3]||"";
-      const name=(first+" "+last).trim();
-      return {first,last,table,seat,name,normalized:normalize(name)};
-    }).filter(g=>g.name && g.table);
-  })
-  .catch(()=>{
-    // The map remains fully usable even if the Google Sheet is temporarily unavailable.
-    showToast("Guest list couldn't be loaded. The map is still available.");
-  });
-
-function showToast(msg){
-  toast.textContent=msg; toast.classList.add("show");
-  setTimeout(()=>toast.classList.remove("show"),3500);
-}
-
-resetMap();
+const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2pieQfwGYu8sURMhnXzEk3372PBBQmSmvuiXqPs7sViOPXaptI-0MJ6AkSjD_3tHyna--57_axu6n/pub?gid=0&single=true&output=csv";
+const CACHE_KEY="jc-seatfinder-guests-v1",CACHE_TTL=15*60*1000;
+const tablePositions={1:[280,455],2:[423,455],3:[568,455],4:[280,625],5:[423,625],6:[568,625],7:[280,795],8:[423,795],9:[568,795],10:[280,965],11:[423,965],12:[568,965],13:[1040,455],14:[1183,455],15:[1328,455],16:[1040,625],17:[1183,625],18:[1328,625],19:[1040,795],20:[1183,795],21:[1328,795],22:[1040,965],23:[1183,965]};
+const tablesG=document.getElementById("tables"),route=document.getElementById("route"),routeShadow=document.getElementById("routeShadow"),startDot=document.getElementById("startDot"),viewport=document.getElementById("viewport"),stage=document.getElementById("stage"),search=document.getElementById("search"),results=document.getElementById("results"),guestCard=document.getElementById("guestCard"),guestName=document.getElementById("guestName"),guestTable=document.getElementById("guestTable"),showRouteBtn=document.getElementById("showRouteBtn"),toast=document.getElementById("toast");
+let guests=[],selectedGuest=null,selectedTable=null,scale=1,tx=0,ty=0,drag=null;const activePointers=new Map();let pinchStart=null;
+function normalize(s){return String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function parseCSV(text){const rows=[];let row=[],cell="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c=='"'&&quoted&&n=='"'){cell+='"';i++;continue}if(c=='"'){quoted=!quoted;continue}if(c==','&&!quoted){row.push(cell.trim());cell="";continue}if((c=='\n'||c=='\r')&&!quoted){if(c=='\r'&&n=='\n')i++;row.push(cell.trim());cell="";if(row.some(v=>v!=""))rows.push(row);row=[];continue}cell+=c}row.push(cell.trim());if(row.some(v=>v!=""))rows.push(row);return rows}
+function buildTables(){Object.entries(tablePositions).forEach(([table,[x,y]])=>{const g=document.createElementNS("http://www.w3.org/2000/svg","g");const hit=document.createElementNS("http://www.w3.org/2000/svg","circle");hit.setAttribute("class","table-hit");hit.setAttribute("cx",x);hit.setAttribute("cy",y);hit.setAttribute("r",58);hit.onclick=()=>selectTable(Number(table),null,true);g.appendChild(hit);const halo=document.createElementNS("http://www.w3.org/2000/svg","circle");halo.setAttribute("class","halo");halo.setAttribute("cx",x);halo.setAttribute("cy",y);halo.setAttribute("r",66);halo.dataset.halo=table;g.appendChild(halo);const label=document.createElementNS("http://www.w3.org/2000/svg","g");label.setAttribute("class","table-label");label.dataset.label=table;const rect=document.createElementNS("http://www.w3.org/2000/svg","rect");rect.setAttribute("x",x-58);rect.setAttribute("y",y-100);rect.setAttribute("width",116);rect.setAttribute("height",34);const txt=document.createElementNS("http://www.w3.org/2000/svg","text");txt.setAttribute("x",x);txt.setAttribute("y",y-77);txt.textContent="YOUR TABLE";label.append(rect,txt);g.appendChild(label);tablesG.appendChild(g)})}buildTables();
+function routePoints(table){const [x,y]=tablePositions[table],entrance=[768,1432],rowAisle=y<=480?535:y<=650?705:y<=820?875:1045;if(x<700){const sx=695;return[entrance,[sx,1340],[sx,rowAisle],[x,rowAisle],[x,y]]}if(x>850){const sx=845;return[entrance,[sx,1340],[sx,rowAisle],[x,rowAisle],[x,y]]}return[entrance,[768,1280],[768,rowAisle],[x,y]]}
+function makePath(points){return points.map((p,i)=>(i?"L ":"M ")+p[0]+" "+p[1]).join(" ")}
+function clearSelection(){selectedGuest=null;selectedTable=null;guestCard.classList.remove("show");document.querySelectorAll(".halo").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".table-label").forEach(el=>el.classList.remove("active"));route.classList.remove("visible");routeShadow.classList.remove("visible");startDot.classList.remove("visible");results.innerHTML=""}
+function showGuest(g){selectedGuest=g;search.value=g.name;results.innerHTML="";guestName.textContent=g.name;guestTable.textContent=`Table ${g.table}`;guestCard.classList.add("show")}
+function selectTable(table,guest=null){selectedTable=table;document.querySelectorAll(".halo").forEach(el=>el.classList.toggle("active",el.dataset.halo==table));document.querySelectorAll(".table-label").forEach(el=>el.classList.toggle("active",el.dataset.label==table));const d=makePath(routePoints(table));route.setAttribute("d",d);routeShadow.setAttribute("d",d);route.classList.add("visible");routeShadow.classList.add("visible");startDot.classList.add("visible");if(guest)showGuest(guest);focusTable(table)}
+function focusTable(table){const [x,y]=tablePositions[table],vw=viewport.clientWidth,vh=viewport.clientHeight;scale=Math.max(1,Math.min(1.5,scale<1?1:scale));tx=vw/2-x*scale;ty=vh/2-y*scale;clampPan();render()}
+function clampPan(){const vw=viewport.clientWidth,vh=viewport.clientHeight,sw=1536*scale,sh=1536*scale,minX=Math.min(0,vw-sw),minY=Math.min(0,vh-sh);tx=Math.max(minX,Math.min(0,tx));ty=Math.max(minY,Math.min(0,ty));if(sw<vw)tx=(vw-sw)/2;if(sh<vh)ty=(vh-sh)/2}
+function render(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
+function resetMap(){scale=Math.min(viewport.clientWidth/1536,viewport.clientHeight/1536);scale=Math.max(scale,.45);tx=(viewport.clientWidth-1536*scale)/2;ty=(viewport.clientHeight-1536*scale)/2;render()}
+function zoom(delta){const old=scale;scale=Math.max(.45,Math.min(2.2,scale+delta));const rect=viewport.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;tx=cx-(cx-tx)*(scale/old);ty=cy-(cy-ty)*(scale/old);clampPan();render()}
+function renderResults(matches){results.innerHTML="";matches.slice(0,8).forEach(g=>{const d=document.createElement("div");d.className="result";d.innerHTML=`<span class="result-name">${escapeHtml(g.name)}</span><span class="result-table">Table ${escapeHtml(g.table)}</span>`;d.onclick=()=>showGuest(g);results.appendChild(d)});if(matches.length>8){const more=document.createElement("div");more.className="hint";more.textContent=`${matches.length-8} more matches — keep typing to narrow it down.`;results.appendChild(more)}}
+search.addEventListener("input",()=>{const q=normalize(search.value);results.innerHTML="";if(!q){clearSelection();return}const parts=search.value.trim().split(/\s+/).map(normalize).filter(Boolean),matches=guests.filter(g=>parts.every(p=>g.normalized.includes(p)));if(matches.length===1)showGuest(matches[0]);else if(matches.length)renderResults(matches);else results.innerHTML='<div class="hint">No guest found. Try a first name or surname.</div>'});
+showRouteBtn.onclick=()=>{if(selectedGuest)selectTable(Number(selectedGuest.table),selectedGuest)};document.getElementById("clearSearch").onclick=()=>{search.value="";clearSelection();search.focus()};document.getElementById("reset").onclick=resetMap;document.getElementById("fitBottom").onclick=resetMap;document.getElementById("zoomIn").onclick=()=>zoom(.12);document.getElementById("zoomOut").onclick=()=>zoom(-.12);
+viewport.addEventListener("pointerdown",e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});viewport.setPointerCapture(e.pointerId);if(activePointers.size===1){drag={x:e.clientX,y:e.clientY,tx,ty};pinchStart=null}else if(activePointers.size===2){const p=[...activePointers.values()],dx=p[1].x-p[0].x,dy=p[1].y-p[0].y,r=viewport.getBoundingClientRect();pinchStart={distance:Math.hypot(dx,dy),scale,tx,ty,cx:(p[0].x+p[1].x)/2-r.left,cy:(p[0].y+p[1].y)/2-r.top};drag=null}});
+viewport.addEventListener("pointermove",e=>{if(!activePointers.has(e.pointerId))return;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2&&pinchStart){const p=[...activePointers.values()],dx=p[1].x-p[0].x,dy=p[1].y-p[0].y,d=Math.max(1,Math.hypot(dx,dy)),ns=Math.max(.45,Math.min(2.2,pinchStart.scale*(d/pinchStart.distance))),ratio=ns/pinchStart.scale;scale=ns;tx=pinchStart.cx-(pinchStart.cx-pinchStart.tx)*ratio;ty=pinchStart.cy-(pinchStart.cy-pinchStart.ty)*ratio;clampPan();render();return}if(drag&&activePointers.size===1){tx=drag.tx+e.clientX-drag.x;ty=drag.ty+e.clientY-drag.y;clampPan();render()}});
+function endPointer(e){activePointers.delete(e.pointerId);if(activePointers.size===0){drag=null;pinchStart=null}else if(activePointers.size===1){const p=[...activePointers.values()][0];drag={x:p.x,y:p.y,tx,ty};pinchStart=null}}viewport.addEventListener("pointerup",endPointer);viewport.addEventListener("pointercancel",endPointer);viewport.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?.08:-.08)},{passive:false});
+window.addEventListener("resize",()=>{if(!selectedTable)resetMap();else focusTable(selectedTable)});
+function showToast(msg){toast.textContent=msg;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),3500)}
+function loadCached(){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");if(c&&Array.isArray(c.guests)&&Date.now()-c.savedAt<CACHE_TTL){guests=c.guests;return true}}catch(e){}return false}
+async function loadGuests(){const had=loadCached();try{const r=await fetch(CSV_URL,{cache:"force-cache"});if(!r.ok)throw new Error();const rows=parseCSV(await r.text()).slice(1),fresh=rows.map(r=>{const first=r[0]||"",last=r[1]||"",table=r[2]||"",seat=r[3]||"",name=(first+" "+last).trim();return{first,last,table,seat,name,normalized:normalize(name)}}).filter(g=>g.name&&g.table);guests=fresh;try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),guests:fresh}))}catch(e){}}catch(e){if(!had)showToast("Guest list couldn't be loaded. Please try again shortly.")}}
+resetMap();loadGuests();
 </script>
 </body>
 </html>
