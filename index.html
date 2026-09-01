@@ -66,8 +66,9 @@ button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9p
 </div><div id="toast" class="toast"></div>
 
 <script>
-const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2pieQfwGYu8sURMhnXzEk3372PBBQmSmvuiXqPs7sViOPXaptI-0MJ6AkSjD_3tHyna--57_axu6n/pub?gid=0&single=true&output=csv";
-const CACHE_KEY="jc-seatfinder-guests-v1",CACHE_TTL=15*60*1000;
+const LOCAL_CSV_URL="guests.csv";
+const GOOGLE_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2pieQfwGYu8sURMhnXzEk3372PBBQmSmvuiXqPs7sViOPXaptI-0MJ6AkSjD_3tHyna--57_axu6n/pub?gid=0&single=true&output=csv";
+const CACHE_KEY="jc-seatfinder-guests-v2",CACHE_TTL=24*60*60*1000;
 const tablePositions={1:[280,455],2:[423,455],3:[568,455],4:[280,625],5:[423,625],6:[568,625],7:[280,795],8:[423,795],9:[568,795],10:[280,965],11:[423,965],12:[568,965],13:[1040,455],14:[1183,455],15:[1328,455],16:[1040,625],17:[1183,625],18:[1328,625],19:[1040,795],20:[1183,795],21:[1328,795],22:[1040,965],23:[1183,965]};
 const tablesG=document.getElementById("tables"),route=document.getElementById("route"),routeShadow=document.getElementById("routeShadow"),startDot=document.getElementById("startDot"),viewport=document.getElementById("viewport"),stage=document.getElementById("stage"),search=document.getElementById("search"),results=document.getElementById("results"),guestCard=document.getElementById("guestCard"),guestName=document.getElementById("guestName"),guestTable=document.getElementById("guestTable"),toast=document.getElementById("toast");
 let guests=[],selectedGuest=null,selectedTable=null,scale=1,tx=0,ty=0,drag=null;const activePointers=new Map();let pinchStart=null;
@@ -121,7 +122,23 @@ function endPointer(e){activePointers.delete(e.pointerId);if(activePointers.size
 window.addEventListener("resize",()=>{if(!selectedTable)resetMap();else focusTable(selectedTable)});
 function showToast(msg){toast.textContent=msg;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),3500)}
 function loadCached(){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");if(c&&Array.isArray(c.guests)&&Date.now()-c.savedAt<CACHE_TTL){guests=c.guests;return true}}catch(e){}return false}
-async function loadGuests(){const had=loadCached();try{const r=await fetch(CSV_URL,{cache:"force-cache"});if(!r.ok)throw new Error();const rows=parseCSV(await r.text()).slice(1),fresh=rows.map(r=>{const first=r[0]||"",last=r[1]||"",table=r[2]||"",seat=r[3]||"",name=(first+" "+last).trim();return{first,last,table,seat,name,normalized:normalize(name)}}).filter(g=>g.name&&g.table);guests=fresh;try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),guests:fresh}))}catch(e){}}catch(e){if(!had)showToast("Guest list couldn't be loaded. Please try again shortly.")}}
+function guestsFromCSV(text){const rows=parseCSV(text).slice(1);return rows.map(r=>{const first=r[0]||"",last=r[1]||"",table=r[2]||"",seat=r[3]||"",name=(first+" "+last).trim();return{first,last,table,seat,name,normalized:normalize(name)}}).filter(g=>g.name&&g.table)}
+function saveGuests(fresh){guests=fresh;try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),guests:fresh}))}catch(e){}}
+async function fetchGuestCSV(url,options={}){const r=await fetch(url,options);if(!r.ok)throw new Error("HTTP "+r.status);const fresh=guestsFromCSV(await r.text());if(!fresh.length)throw new Error("Guest list is empty");return fresh}
+async function loadGuests(){
+  const hadCached=loadCached();
+  try{
+    const fresh=await fetchGuestCSV(LOCAL_CSV_URL,{cache:"no-store"});
+    saveGuests(fresh);
+    return;
+  }catch(e){}
+  try{
+    const fresh=await fetchGuestCSV(GOOGLE_CSV_URL,{cache:"no-store"});
+    saveGuests(fresh);
+    return;
+  }catch(e){}
+  if(!hadCached)showToast("Guest list couldn't be loaded. Please try again shortly.");
+}
 resetMap();loadGuests();
 </script>
 </body>
