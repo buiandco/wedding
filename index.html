@@ -45,9 +45,9 @@ button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9p
 
 <section class="search-card card">
 <div class="search-wrap"><span class="search-icon">⌕</span><input id="search" autocomplete="off" placeholder="Search guest or group…"><button class="clear" id="clearSearch">×</button></div>
-<div class="search-section"><div class="search-section-title">Matching guests — identify by who they're sitting with</div><div id="results" class="results"></div></div>
+<div class="search-section"><div class="search-section-title">Matching guests — choose the right person</div><div id="results" class="results"></div></div>
 <div class="search-section"><div class="search-section-title">Group details — for reference</div><div id="groupResults"></div></div>
-<div class="hint">Search by guest name. If names are similar, use the “Sitting with” names to identify the right guest.</div>
+<div class="hint">Search by guest name. If several people match, use their table and same-table companions to identify the right guest.</div>
 </section>
 
 <section id="guestCard" class="guest-card card">
@@ -132,6 +132,7 @@ function showGuest(g,autoRoute=true){
   selectedGuest=g;
   search.value=g.name;
   results.innerHTML="";
+  groupResults.innerHTML="";
   guestName.textContent=g.name;
   guestTable.textContent=g.table==="Main"?"Bridal Table":`Table ${g.table}`;
   guestCard.classList.add("show");
@@ -168,14 +169,14 @@ function renderResults(matches){
   matches.forEach(g=>duplicateNames.set(g.normalized,(duplicateNames.get(g.normalized)||0)+1));
   matches.forEach(g=>{
     const d=document.createElement("div");d.className="result";
-    const members=g.group?guests.filter(x=>x.group===g.group&&x.name!==g.name):[];
-    const sittingWith=members.slice(0,4).map(x=>x.name);
-    const remaining=Math.max(0,members.length-sittingWith.length);
+    const sameTableMembers=g.group?guests.filter(x=>x.group===g.group&&x.name!==g.name&&String(x.table)===String(g.table)):[];
+    const sittingWith=sameTableMembers.slice(0,4).map(x=>x.name);
+    const remaining=Math.max(0,sameTableMembers.length-sittingWith.length);
     const context=sittingWith.length
       ? `Sitting with: ${sittingWith.map(escapeHtml).join(", ")}${remaining?` + ${remaining} other${remaining===1?"":"s"}`:""}`
-      : "Individual guest";
+      : (g.group ? `Group: ${escapeHtml(g.group)}` : "Individual guest");
     const duplicate=duplicateNames.get(g.normalized)>1;
-    d.innerHTML=`<span class="result-name"><span style="display:block">${escapeHtml(g.name)}</span><span style="display:block;font-size:9px;font-weight:600;color:${duplicate?"var(--rose2)":"var(--muted)"};margin-top:3px">${context}</span>${g.group?`<span style="display:block;font-size:8.5px;font-weight:500;color:var(--muted);margin-top:2px">${escapeHtml(g.group)}</span>`:""}</span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;
+    d.innerHTML=`<span class="result-name"><span style="display:block">${escapeHtml(g.name)}</span><span style="display:block;font-size:9px;font-weight:600;color:${duplicate?"var(--rose2)":"var(--muted)"};margin-top:3px">${context}</span></span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;
     d.onclick=()=>showGuest(g);results.appendChild(d);
   });
 }
@@ -193,12 +194,14 @@ function renderGroupResults(matches){
 search.addEventListener("input",()=>{
   const q=normalize(search.value);results.innerHTML="";groupResults.innerHTML="";
   if(!q){clearSelection();return}
-  const parts=search.value.trim().split(/\s+/).map(normalize).filter(Boolean);
+  const parts=search.value.trim().split(/\\s+/).map(normalize).filter(Boolean);
   const nameMatches=guests.filter(g=>parts.every(p=>g.normalized.includes(p)));
-  if(nameMatches.length){
-    // Always list all matching people, even when there is only one.
+  if(nameMatches.length===1){
+    const g=nameMatches[0];
+    showGuest(g);
+    if(g.group)renderGroupResults([g]);
+  }else if(nameMatches.length){
     renderResults(nameMatches);
-    // Only show groups attached to the people found by the NAME search.
     renderGroupResults(nameMatches.filter(g=>g.group));
   }else{
     results.innerHTML='<div class="hint">No guest-name match.</div>';
