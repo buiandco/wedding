@@ -27,7 +27,7 @@ button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9p
 .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}.control{min-height:46px;border:1px solid #edd9d4;border-radius:14px;background:#fffaf8;color:#3f3937;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px}.mi{color:#ce7176;font-size:17px}.footer{text-align:center;color:#a49a96;font-size:10px;margin:21px auto 3px}.heart{color:#e3a4a4;font-size:14px;margin:0 7px}.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);opacity:0;background:#b86167;color:#fff;padding:11px 15px;border-radius:13px;z-index:30;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}
 @media(min-width:700px){.viewport{aspect-ratio:1/1;max-height:720px}}
 
-.search-section{margin-top:11px}.search-section-title{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 5px 6px}
+.search-section{margin-top:11px}.search-section+.search-section{margin-top:18px;padding-top:13px;border-top:1px solid #f0dfda}.search-section-title{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 5px 6px}
 .group-result{padding:11px 12px;border-radius:14px;background:#fffdfb;border:1px solid #ead8d2}.group-result+.group-result{margin-top:7px}
 .group-result-name{font-weight:700;font-size:13px;color:var(--rose2)}.group-result-meta{font-size:10px;color:var(--muted);margin-top:4px}
 .group-members{margin-top:8px;border-top:1px solid #f0dfda;padding-top:5px}.group-member{width:100%;border:0;background:transparent;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 4px;text-align:left;color:var(--ink);border-radius:9px}
@@ -45,8 +45,8 @@ button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9p
 
 <section class="search-card card">
 <div class="search-wrap"><span class="search-icon">⌕</span><input id="search" autocomplete="off" placeholder="Search guest or group…"><button class="clear" id="clearSearch">×</button></div>
-<div class="search-section"><div class="search-section-title">Guest matches</div><div id="results" class="results"></div></div>
-<div class="search-section"><div class="search-section-title">Linked groups for these guests</div><div id="groupResults"></div></div>
+<div class="search-section"><div class="search-section-title">Matching guests — tap the right person</div><div id="results" class="results"></div></div>
+<div class="search-section"><div class="search-section-title">Group details — for reference</div><div id="groupResults"></div></div>
 <div class="hint">Search by guest name. Linked family/group details appear underneath to help identify the right person.</div>
 </section>
 
@@ -162,7 +162,14 @@ function resetMap(){
   render();
 }
 function zoom(delta){const old=scale,fit=Math.min(viewport.clientWidth/1254,viewport.clientHeight/1254);scale=Math.max(fit,Math.min(2.2,scale+delta));const rect=viewport.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;tx=cx-(cx-tx)*(scale/old);ty=cy-(cy-ty)*(scale/old);clampPan();render()}
-function renderResults(matches){results.innerHTML="";matches.slice(0,8).forEach(g=>{const d=document.createElement("div");d.className="result";d.innerHTML=`<span class="result-name">${escapeHtml(g.name)}</span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;d.onclick=()=>showGuest(g);results.appendChild(d)});if(matches.length>8){const more=document.createElement("div");more.className="hint";more.textContent=`${matches.length-8} more matches — keep typing to narrow it down.`;results.appendChild(more)}}
+function renderResults(matches){
+  results.innerHTML="";
+  matches.forEach(g=>{
+    const d=document.createElement("div");d.className="result";
+    d.innerHTML=`<span class="result-name"><span style="display:block">${escapeHtml(g.name)}</span>${g.group?`<span style="display:block;font-size:9px;font-weight:500;color:var(--muted);margin-top:3px">${escapeHtml(g.group)}</span>`:""}</span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;
+    d.onclick=()=>showGuest(g);results.appendChild(d);
+  });
+}
 function renderGroupResults(matches){
   groupResults.innerHTML="";
   const names=[...new Set(matches.map(g=>g.group).filter(Boolean))];
