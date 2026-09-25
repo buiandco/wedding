@@ -45,9 +45,9 @@ button,input{font:inherit}.app{width:min(900px,100%);margin:auto;padding:14px 9p
 
 <section class="search-card card">
 <div class="search-wrap"><span class="search-icon">⌕</span><input id="search" autocomplete="off" placeholder="Search guest or group…"><button class="clear" id="clearSearch">×</button></div>
-<div class="search-section"><div class="search-section-title">Matching guests — tap the right person</div><div id="results" class="results"></div></div>
+<div class="search-section"><div class="search-section-title">Matching guests — identify by who they're sitting with</div><div id="results" class="results"></div></div>
 <div class="search-section"><div class="search-section-title">Group details — for reference</div><div id="groupResults"></div></div>
-<div class="hint">Search by guest name. Linked family/group details appear underneath to help identify the right person.</div>
+<div class="hint">Search by guest name. If names are similar, use the “Sitting with” names to identify the right guest.</div>
 </section>
 
 <section id="guestCard" class="guest-card card">
@@ -164,9 +164,18 @@ function resetMap(){
 function zoom(delta){const old=scale,fit=Math.min(viewport.clientWidth/1254,viewport.clientHeight/1254);scale=Math.max(fit,Math.min(2.2,scale+delta));const rect=viewport.getBoundingClientRect(),cx=rect.width/2,cy=rect.height/2;tx=cx-(cx-tx)*(scale/old);ty=cy-(cy-ty)*(scale/old);clampPan();render()}
 function renderResults(matches){
   results.innerHTML="";
+  const duplicateNames=new Map();
+  matches.forEach(g=>duplicateNames.set(g.normalized,(duplicateNames.get(g.normalized)||0)+1));
   matches.forEach(g=>{
     const d=document.createElement("div");d.className="result";
-    d.innerHTML=`<span class="result-name"><span style="display:block">${escapeHtml(g.name)}</span>${g.group?`<span style="display:block;font-size:9px;font-weight:500;color:var(--muted);margin-top:3px">${escapeHtml(g.group)}</span>`:""}</span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;
+    const members=g.group?guests.filter(x=>x.group===g.group&&x.name!==g.name):[];
+    const sittingWith=members.slice(0,4).map(x=>x.name);
+    const remaining=Math.max(0,members.length-sittingWith.length);
+    const context=sittingWith.length
+      ? `Sitting with: ${sittingWith.map(escapeHtml).join(", ")}${remaining?` + ${remaining} other${remaining===1?"":"s"}`:""}`
+      : "Individual guest";
+    const duplicate=duplicateNames.get(g.normalized)>1;
+    d.innerHTML=`<span class="result-name"><span style="display:block">${escapeHtml(g.name)}</span><span style="display:block;font-size:9px;font-weight:600;color:${duplicate?"var(--rose2)":"var(--muted)"};margin-top:3px">${context}</span>${g.group?`<span style="display:block;font-size:8.5px;font-weight:500;color:var(--muted);margin-top:2px">${escapeHtml(g.group)}</span>`:""}</span><span class="result-table">${g.table==="Main"?"Bridal Table":"Table "+escapeHtml(g.table)}</span>`;
     d.onclick=()=>showGuest(g);results.appendChild(d);
   });
 }
